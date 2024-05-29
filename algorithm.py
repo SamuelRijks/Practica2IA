@@ -1,7 +1,7 @@
 import heapq
 
 
-def dijkstra(graph, start):
+def dijkstra_algorithm(graph, start):
     queue = []
     heapq.heappush(queue, (0, start))
     distances = {node: float("infinity") for node in graph}

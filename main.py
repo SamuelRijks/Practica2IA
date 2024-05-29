@@ -1,5 +1,5 @@
 import json
-from delivery_algorithms import greedy_algorithm, knapsack_algorithm, dijkstra_algorithm
+from algorithm import greedy_algorithm, knapsack_algorithm, dijkstra_algorithm
 from utils import load_data
 
 
@@ -17,7 +17,7 @@ def main():
         print(comanda)
 
     # Aplicar problema de la motxilla
-    selected_comandes_knapsack = knapsack_algorithm(comandes)
+    selected_comandes_knapsack = knapsack_algorithm(selected_comandes_greedy)
     print("Comandes seleccionades (Knapsack):")
     for comanda in selected_comandes_knapsack:
         print(comanda)
@@ -32,7 +32,7 @@ def main():
     }
 
     # Aplicar algoritme de Dijkstra
-    distances, shortest_path = dijkstra(graph, "A")
+    distances, shortest_path = dijkstra_algorithm(restaurants)
     print("Distàncies més curtes des de 'A':")
     print(distances)
 
