@@ -51,18 +51,10 @@ def main():
         comandes = json.load(file)
 
     # Assignar el pes mitjà del menú a cada comanda
+    # Asignar el peso medio del menú a cada comanda
     for comanda in comandes:
-        restaurant_id = comanda["restaurant_id"]
-        especialitat = next(
-            (
-                rest["especialitat"]
-                for rest in restaurants
-                if rest["id"] == restaurant_id
-            ),
-            None,
-        )
-        if especialitat:
-            comanda["weight"] = pes_mitja_menu.get(especialitat, 0)
+        especialitat = comanda["especialidad"]
+        comanda["weight"] = pes_mitja_menu.get(especialitat, 0)
 
     # Aplicar algoritme Greedy
     selected_comandes_greedy = greedy_algorithm(comandes)
