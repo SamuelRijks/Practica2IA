@@ -13,18 +13,32 @@ def parse_coordinates(coord_str):
 
 
 def build_graph(restaurants, orders, start_coordinates):
-    graph = {start_coordinates: {}}
+    graph = {start_coordinates: {"start"}}
 
     # Add restaurants of the same specialty to graph
     for restaurant in restaurants:
         if restaurant["especialidad"] == orders[0]["especialitat"]:
-            graph[restaurant["coordenadas"]] = {}
+            graph[restaurant["coordenadas"]] = {"restaurant"}
 
     # Add each order's coordinates to graph
     for order in orders:
-        graph[order["coordenades"]] = {}
+        graph[order["coordenades"]] = {"entrega"}
 
     return graph
+
+
+def build_graph_with_distances(graph):
+    graph_with_distances = {}
+    for node1 in graph:
+        if len(node1) != 2:
+            raise ValueError(f"Node {node1} does not have exactly two coordinates")
+        graph_with_distances[node1] = {}
+        for node2 in graph:
+            if len(node2) != 2:
+                raise ValueError(f"Node {node2} does not have exactly two coordinates")
+            if node1 != node2:
+                graph_with_distances[node1][node2] = haversine(node1, node2)
+    return graph_with_distances
 
 
 pes_mitja_menu = {
@@ -43,20 +57,15 @@ pes_mitja_menu = {
     "Veneçolana": {"pes": 395, "temps_lliurament": 28},
     "Xinesa": {"pes": 350, "temps_lliurament": 32},
 }
-# el repartidor ha d'omplir la motxilla (12kg) recolling el menjar dels restaurants més propers segons les especialitats especificades
-# a dins de les comandes i es fa el repartimemt utilitzant dijkstra per trobar el camí més curt entre els restaurants. Quan
-# es buidi la motxilla, es repatirà aquest procés fins haver complert totes les comandes
 
 
 def main():
 
-    # Lectura de dades
     with open("restaurants.json", "r", encoding="utf-8") as file:
         restaurants = json.load(file)
     with open("comandes.json", "r", encoding="utf-8") as file:
         comandes = json.load(file)
 
-    # Define the maximum weight the backpack can carry
     max_weight = 12000
 
     # Group orders by specialty
@@ -108,14 +117,21 @@ def main():
         start_coordinates = "41.528154350078815,2.4346229558256196"
         graph = build_graph(restaurants, selected_comandes_knapsack, start_coordinates)
 
-        # Apply Dijkstra's algorithm
-        distances = dijkstra_algorithm(graph)  # We start from the restaurant with id 0
+        # Convert the nodes to tuples
+        def convert_to_tuple(coord_str):
+            return tuple(map(float, coord_str.split(",")))
+
+        graph = {convert_to_tuple(node): neighbors for node, neighbors in graph.items()}
+
+        graph_with_distances = build_graph_with_distances(graph)
+        distances = dijkstra_algorithm(graph_with_distances)
 
         # Print only the restaurant and the delivery points of the orders
-        print("Shortest distances from restaurant 0:")
+        print("Shortest route:")
         for comanda in selected_comandes_knapsack:
+            delivery_point = convert_to_tuple(comanda["coordenades"])
             print(
-                f"Delivery point: {comanda['coordenades']}, Distance: {distances[comanda['coordenades']]}"
+                f"Delivery point: {comanda['coordenades']}, Distance: {distances[delivery_point]}"
             )
 
 
