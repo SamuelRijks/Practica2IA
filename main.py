@@ -56,12 +56,13 @@ pes_mitja_menu = {
     "Veneçolana": {"pes": 395, "temps_lliurament": 28},
     "Xinesa": {"pes": 350, "temps_lliurament": 32},
 }
+# el repartidor ha d'omplir la motxilla (12kg) recolling el menjar dels restaurants més propers segons les especialitats especificades
+# a dins de les comandes i es fa el repartimemt utilitzant dijkstra per trobar el camí més curt entre els restaurants. Quan
+# es buidi la motxilla, es repatirà aquest procés fins haver complert totes les comandes
 
 
 def main():
-    # el repartidor ha d'omplir la motxilla (12kg) recolling el menjar dels restaurants més propers segons les especialitats especificades
-    # a dins de les comandes i es fa el repartimemt utilitzant dijkstra per trobar el camí més curt entre els restaurants. Quan
-    # es buidi la motxilla, es repatirà aquest procés fins haver complert totes les comandes
+
     # Lectura de dades
     with open("restaurants.json", "r", encoding="utf-8") as file:
         restaurants = json.load(file)
@@ -80,7 +81,10 @@ def main():
         comandes_by_especialitat[especialitat].append(comanda)
 
     # Process each group of orders
-    for especialitat, comandes_group in comandes_by_especialitat.items():
+    for especialitat in list(
+        comandes_by_especialitat.keys()
+    ):  # Create a copy of the keys
+        comandes_group = comandes_by_especialitat[especialitat]
         print(f"Processing orders for {especialitat}...")
 
         # Assign the average menu weight to each order
