@@ -7,7 +7,10 @@ import heapq
 import heapq
 
 
-def dijkstra_algorithm(graph, start):
+def dijkstra_algorithm(graph):
+    start = next(iter(graph))
+    print(f"Start node: {start}")
+
     distances = {node: float("infinity") for node in graph}
     distances[start] = 0
     queue = [(0, start)]

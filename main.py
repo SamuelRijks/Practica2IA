@@ -21,7 +21,7 @@ def build_graph(restaurants, orders):
 
     # Add delivery addresses to graph
     for order in orders:
-        graph[order["coordenadas"]] = {}
+        graph[order["coordenades"]] = {}
 
     # Calculate distances between all pairs of nodes
     for node1 in graph:
@@ -94,9 +94,7 @@ def main():
         graph = build_graph(restaurants, selected_comandes_knapsack)
 
         # Apply Dijkstra's algorithm
-        distances = dijkstra_algorithm(
-            graph, 0
-        )  # We start from the restaurant with id 0
+        distances = dijkstra_algorithm(graph)  # We start from the restaurant with id 0
         print("Shortest distances from restaurant 0:")
         print(distances)
 
