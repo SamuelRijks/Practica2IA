@@ -19,17 +19,23 @@ def build_graph(restaurants, orders):
     for restaurant in restaurants:
         graph[restaurant["coordenadas"]] = {}
 
-    # Add delivery addresses to graph
+    # Group orders by specialty
+    orders_by_specialty = {}
     for order in orders:
-        graph[order["coordenades"]] = {}
+        if order["especialitat"] not in orders_by_specialty:
+            orders_by_specialty[order["especialitat"]] = []
+        orders_by_specialty[order["especialitat"]].append(order)
 
-    # Calculate distances between all pairs of nodes
-    for node1 in graph:
-        for node2 in graph:
-            if node1 != node2:
-                coord1 = parse_coordinates(node1)
-                coord2 = parse_coordinates(node2)
-                graph[node1][node2] = haversine(coord1, coord2)
+    # Add grouped delivery addresses to graph
+    for specialty, orders in orders_by_specialty.items():
+        # Use the average coordinates of the orders as the delivery address
+        avg_lat = sum(
+            parse_coordinates(order["coordenades"])[0] for order in orders
+        ) / len(orders)
+        avg_lon = sum(
+            parse_coordinates(order["coordenades"])[1] for order in orders
+        ) / len(orders)
+        graph[f"{avg_lat},{avg_lon}"] = {}
 
     return graph
 
@@ -65,21 +71,38 @@ def main():
     # Define the maximum weight the backpack can carry
     max_weight = 12000
 
-    # Repeat until all orders are delivered
-    while comandes:
+    # Group orders by specialty
+    comandes_by_especialitat = {}
+    for comanda in comandes:
+        especialitat = comanda["especialitat"]
+        if especialitat not in comandes_by_especialitat:
+            comandes_by_especialitat[especialitat] = []
+        comandes_by_especialitat[especialitat].append(comanda)
+
+    # Process each group of orders
+    for especialitat, comandes_group in comandes_by_especialitat.items():
+        print(f"Processing orders for {especialitat}...")
+
         # Assign the average menu weight to each order
-        for comanda in comandes:
-            especialitat = comanda["especialitat"]
+        for comanda in comandes_group:
             comanda["weight"] = pes_mitja_menu[especialitat]["pes"]
             comanda["temps_lliurament"] = pes_mitja_menu[especialitat][
                 "temps_lliurament"
             ]
 
         # Apply Greedy algorithm to select orders with the smallest delivery commitment time
-        selected_comandes_greedy = greedy_algorithm(comandes)
+        selected_comandes_greedy = greedy_algorithm(comandes_group)
         print("Selected orders (Greedy):")
         for comanda in selected_comandes_greedy:
             print(comanda)
+
+        # Remove selected orders from the group
+        for comanda in selected_comandes_greedy:
+            comandes_group.remove(comanda)
+
+        # If all orders in the group have been delivered, remove the group
+        if not comandes_group:
+            del comandes_by_especialitat[especialitat]
 
         # Apply Knapsack problem with the orders selected by the Greedy algorithm
         selected_comandes_knapsack, total_weight = knapsack_algorithm(
