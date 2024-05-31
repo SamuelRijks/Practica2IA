@@ -12,30 +12,17 @@ def parse_coordinates(coord_str):
     return (lat, lon)
 
 
-def build_graph(restaurants, orders):
-    graph = {}
+def build_graph(restaurants, orders, start_coordinates):
+    graph = {start_coordinates: {}}
 
-    # Add restaurants to graph
+    # Add restaurants of the same specialty to graph
     for restaurant in restaurants:
-        graph[restaurant["coordenadas"]] = {}
+        if restaurant["especialidad"] == orders[0]["especialitat"]:
+            graph[restaurant["coordenadas"]] = {}
 
-    # Group orders by specialty
-    orders_by_specialty = {}
+    # Add each order's coordinates to graph
     for order in orders:
-        if order["especialitat"] not in orders_by_specialty:
-            orders_by_specialty[order["especialitat"]] = []
-        orders_by_specialty[order["especialitat"]].append(order)
-
-    # Add grouped delivery addresses to graph
-    for specialty, orders in orders_by_specialty.items():
-        # Use the average coordinates of the orders as the delivery address
-        avg_lat = sum(
-            parse_coordinates(order["coordenades"])[0] for order in orders
-        ) / len(orders)
-        avg_lon = sum(
-            parse_coordinates(order["coordenades"])[1] for order in orders
-        ) / len(orders)
-        graph[f"{avg_lat},{avg_lon}"] = {}
+        graph[order["coordenades"]] = {}
 
     return graph
 
@@ -118,16 +105,18 @@ def main():
             print(comanda)
 
         # Build the graph of distances between restaurants using the coordinates
-        graph = build_graph(restaurants, selected_comandes_knapsack)
+        start_coordinates = "41.528154350078815,2.4346229558256196"
+        graph = build_graph(restaurants, selected_comandes_knapsack, start_coordinates)
 
         # Apply Dijkstra's algorithm
         distances = dijkstra_algorithm(graph)  # We start from the restaurant with id 0
-        print("Shortest distances from restaurant 0:")
-        print(distances)
 
-        # Remove delivered orders from the list of orders
+        # Print only the restaurant and the delivery points of the orders
+        print("Shortest distances from restaurant 0:")
         for comanda in selected_comandes_knapsack:
-            comandes.remove(comanda)
+            print(
+                f"Delivery point: {comanda['coordenades']}, Distance: {distances[comanda['coordenades']]}"
+            )
 
 
 if __name__ == "__main__":
