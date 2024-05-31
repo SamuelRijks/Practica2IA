@@ -12,76 +12,96 @@ def parse_coordinates(coord_str):
     return (lat, lon)
 
 
-def build_graph(restaurants):
+def build_graph(restaurants, orders):
     graph = {}
-    for i, rest1 in enumerate(restaurants):
-        graph[i] = {}
-        coord1 = parse_coordinates(rest1["coordenades"])
-        for j, rest2 in enumerate(restaurants):
-            if i != j:
-                coord2 = parse_coordinates(rest2["coordenades"])
-                distance = haversine(coord1, coord2)
-                graph[i][j] = distance
+
+    # Add restaurants to graph
+    for restaurant in restaurants:
+        graph[restaurant["coordenades"]] = {}
+
+    # Add delivery addresses to graph
+    for order in orders:
+        graph[order["coordenades"]] = {}
+
+    # Calculate distances between all pairs of nodes
+    for node1 in graph:
+        for node2 in graph:
+            if node1 != node2:
+                coord1 = parse_coordinates(node1)
+                coord2 = parse_coordinates(node2)
+                graph[node1][node2] = haversine(coord1, coord2)
+
     return graph
 
 
 pes_mitja_menu = {
-    "Africana": 400,
-    "Alemanya": 380,
-    "Americana": 425,
-    "Argentina": 450,
-    "Catalana": 400,
-    "Francesa": 395,
-    "Hindú": 410,
-    "Italiana": 440,
-    "Japonesa": 300,
-    "Mexicana": 370,
-    "Peruana": 405,
-    "Tailandesa": 385,
-    "Veneçolana": 395,
-    "Xinesa": 350,
+    "Africana": {"pes": 400, "temps_lliurament": 35},
+    "Alemanya": {"pes": 380, "temps_lliurament": 38},
+    "Americana": {"pes": 425, "temps_lliurament": 25},
+    "Argentina": {"pes": 450, "temps_lliurament": 24},
+    "Catalana": {"pes": 400, "temps_lliurament": 15},
+    "Francesa": {"pes": 395, "temps_lliurament": 17},
+    "Hindú": {"pes": 410, "temps_lliurament": 12},
+    "Italiana": {"pes": 440, "temps_lliurament": 20},
+    "Japonesa": {"pes": 300, "temps_lliurament": 30},
+    "Mexicana": {"pes": 370, "temps_lliurament": 18},
+    "Peruana": {"pes": 405, "temps_lliurament": 16},
+    "Tailandesa": {"pes": 385, "temps_lliurament": 19},
+    "Veneçolana": {"pes": 395, "temps_lliurament": 28},
+    "Xinesa": {"pes": 350, "temps_lliurament": 32},
 }
 
 
 def main():
+    # el repartidor ha d'omplir la motxilla (12kg) recolling el menjar dels restaurants més propers segons les especialitats especificades
+    # a dins de les comandes i es fa el repartimemt utilitzant dijkstra per trobar el camí més curt entre els restaurants. Quan
+    # es buidi la motxilla, es repatirà aquest procés fins haver complert totes les comandes
     # Lectura de dades
-    with open("restaurants.json", "r") as file:
+    with open("restaurants.json", "r", encoding="utf-8") as file:
         restaurants = json.load(file)
-    with open("comandes.json", "r") as file:
+    with open("comandes.json", "r", encoding="utf-8") as file:
         comandes = json.load(file)
 
-    # Assignar el pes mitjà del menú a cada comanda
-    # Asignar el peso medio del menú a cada comanda
-    for comanda in comandes:
-        especialitat = comanda["especialidad"]
-        comanda["weight"] = pes_mitja_menu.get(especialitat, 0)
+    # Define the maximum weight the backpack can carry
+    max_weight = 12000
 
-    # Aplicar algoritme Greedy
-    selected_comandes_greedy = greedy_algorithm(comandes)
-    print("Comandes seleccionades (Greedy):")
-    for comanda in selected_comandes_greedy:
-        print(comanda)
+    # Repeat until all orders are delivered
+    while comandes:
+        # Assign the average menu weight to each order
+        for comanda in comandes:
+            especialitat = comanda["especialitat"]
+            comanda["weight"] = pes_mitja_menu[especialitat]["pes"]
+            comanda["temps_lliurament"] = pes_mitja_menu[especialitat][
+                "temps_lliurament"
+            ]
 
-    # Definir el pes màxim que pot portar la motxilla (per exemple 2000 grams)
-    max_weight = 2000
+        # Apply Greedy algorithm to select orders with the smallest delivery commitment time
+        selected_comandes_greedy = greedy_algorithm(comandes)
+        print("Selected orders (Greedy):")
+        for comanda in selected_comandes_greedy:
+            print(comanda)
 
-    # Aplicar problema de la motxilla amb les comandes seleccionades pel Greedy
-    selected_comandes_knapsack = knapsack_algorithm(
-        selected_comandes_greedy, max_weight
-    )
-    print("Comandes seleccionades (Knapsack):")
-    for comanda in selected_comandes_knapsack:
-        print(comanda)
+        # Apply Knapsack problem with the orders selected by the Greedy algorithm
+        selected_comandes_knapsack = knapsack_algorithm(
+            selected_comandes_greedy, max_weight
+        )
+        print("Selected orders (Knapsack):")
+        for comanda in selected_comandes_knapsack:
+            print(comanda)
 
-    # Construir el graf de distàncies entre restaurants utilitzant les coordenades
-    graph = build_graph(restaurants)
+        # Build the graph of distances between restaurants using the coordinates
+        graph = build_graph(restaurants, selected_comandes_knapsack)
 
-    # Aplicar algoritme de Dijkstra
-    distances, shortest_path = dijkstra_algorithm(
-        graph, 0
-    )  # Partim del restaurant amb id 0
-    print("Distàncies més curtes des del restaurant 0:")
-    print(distances)
+        # Apply Dijkstra's algorithm
+        distances = dijkstra_algorithm(
+            graph, 0
+        )  # We start from the restaurant with id 0
+        print("Shortest distances from restaurant 0:")
+        print(distances)
+
+        # Remove delivered orders from the list of orders
+        for comanda in selected_comandes_knapsack:
+            comandes.remove(comanda)
 
 
 if __name__ == "__main__":

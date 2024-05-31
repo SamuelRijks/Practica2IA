@@ -4,16 +4,16 @@ import math
 
 import heapq
 
+import heapq
+
 
 def dijkstra_algorithm(graph, start):
-    # Inicialització de distàncies i cua de prioritats
     distances = {node: float("infinity") for node in graph}
     distances[start] = 0
-    pq = [(0, start)]
-    shortest_path = {node: None for node in graph}
+    queue = [(0, start)]
 
-    while pq:
-        current_distance, current_node = heapq.heappop(pq)
+    while queue:
+        current_distance, current_node = heapq.heappop(queue)
 
         if current_distance > distances[current_node]:
             continue
@@ -23,23 +23,15 @@ def dijkstra_algorithm(graph, start):
 
             if distance < distances[neighbor]:
                 distances[neighbor] = distance
-                shortest_path[neighbor] = current_node
-                heapq.heappush(pq, (distance, neighbor))
+                heapq.heappush(queue, (distance, neighbor))
 
-    return distances, shortest_path
+    return distances
 
 
-def greedy_algorithm(comandes, max_weight=12):
-    comandes.sort(
-        key=lambda x: x["temps_lliurament"]
+def greedy_algorithm(comandes):
+    selected_comandes = sorted(
+        comandes, key=lambda x: x["temps_lliurament"]
     )  # Ordenar per temps de lliurament més curt
-    selected_comandes = []
-    total_weight = 0
-
-    for comanda in comandes:
-        if total_weight + comanda["pes"] <= max_weight:
-            selected_comandes.append(comanda)
-            total_weight += comanda["pes"]
 
     return selected_comandes
 
