@@ -38,29 +38,32 @@ def greedy_algorithm(comandes):
 
 def knapsack_algorithm(comandes, max_weight):
     n = len(comandes)
-    # Creació d'una matriu per guardar els valors màxims
     dp = [[0 for _ in range(max_weight + 1)] for _ in range(n + 1)]
 
-    # Construcció de la matriu dp
     for i in range(1, n + 1):
         for w in range(max_weight + 1):
             if comandes[i - 1]["weight"] <= w:
                 dp[i][w] = max(
                     dp[i - 1][w],
-                    dp[i - 1][w - comandes[i - 1]["weight"]] + comandes[i - 1]["value"],
+                    dp[i - 1][w - comandes[i - 1]["weight"]]
+                    + comandes[i - 1]["weight"],
                 )
             else:
                 dp[i][w] = dp[i - 1][w]
 
-    # Trobar les comandes seleccionades
     selected_comandes = []
+    total_weight = 0
     w = max_weight
     for i in range(n, 0, -1):
         if dp[i][w] != dp[i - 1][w]:
             selected_comandes.append(comandes[i - 1])
             w -= comandes[i - 1]["weight"]
+            total_weight += comandes[i - 1]["weight"]
 
-    return selected_comandes[::-1]  # Invertir per mantenir l'ordre original
+    return (
+        selected_comandes[::-1],
+        total_weight,
+    )  # Return both the orders and the total weight
 
 
 def haversine(coord1, coord2):

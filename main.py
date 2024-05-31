@@ -17,11 +17,11 @@ def build_graph(restaurants, orders):
 
     # Add restaurants to graph
     for restaurant in restaurants:
-        graph[restaurant["coordenades"]] = {}
+        graph[restaurant["coordenadas"]] = {}
 
     # Add delivery addresses to graph
     for order in orders:
-        graph[order["coordenades"]] = {}
+        graph[order["coordenadas"]] = {}
 
     # Calculate distances between all pairs of nodes
     for node1 in graph:
@@ -82,9 +82,10 @@ def main():
             print(comanda)
 
         # Apply Knapsack problem with the orders selected by the Greedy algorithm
-        selected_comandes_knapsack = knapsack_algorithm(
+        selected_comandes_knapsack, total_weight = knapsack_algorithm(
             selected_comandes_greedy, max_weight
         )
+        print(total_weight)
         print("Selected orders (Knapsack):")
         for comanda in selected_comandes_knapsack:
             print(comanda)
